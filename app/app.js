@@ -68,7 +68,7 @@ function renderHome() {
     '<div class="kpi"><div class="kpi-label">Pemasukan</div><div class="kpi-value income">' + fmt(t.income) + '</div><div class="kpi-sub">Gaji + usaha sampingan</div></div>' +
     '<div class="kpi"><div class="kpi-label">Pengeluaran</div><div class="kpi-value expense">' + fmt(t.expense) + '</div><div class="kpi-sub">' + Math.round((t.expense / t.income) * 100) + '% dari pemasukan</div></div>' +
     '<div class="kpi"><div class="kpi-label">Sisa / Saldo</div><div class="kpi-value">' + fmt(t.balance) + '</div><div class="kpi-sub">Setelah semua pengeluaran</div></div>' +
-    '<div class="kpi"><div class="kpi-label">Tabungan bulan ini</div><div class="kpi-value saving">' + fmt(saving) + '</div><div class="kpi-sub">' + Math.round((saving / t.income) * 100) + '% dari pemasukan</div></div>' +
+    '<div class="kpi"><div class="kpi-label">Tabungan bulan ini</div><div class="kpi-value saving">' + fmt(saving) + '</div><div class="kpi-sub">' + Math.round((saving / t.income) * 100) + '% dari pemasukan &middot; dialokasikan dari sisa, bukan pengeluaran</div></div>' +
     '</section>' +
     '<section class="grid-2">' +
     '<div class="card"><h2>Pengeluaran per kategori</h2>' + donutChart(segs, 220) +
@@ -171,9 +171,11 @@ function renderGoals() {
   const totalTarget = state.goals.reduce((s, g) => s + g.target, 0);
   const cards = state.goals.map((g) => {
     const pct = (g.saved / g.target) * 100;
+    const monthlySaving = state.profile.monthlySaving;
+    const eta = (g.saved < g.target && monthlySaving > 0) ? '<div class="goal-meta"><span>&plusmn;' + Math.ceil((g.target - g.saved) / monthlySaving) + ' bulan lagi dengan tabungan ' + fmt(monthlySaving) + '/bulan</span></div>' : '';
     return '<div class="card goal"><h2>' + esc(g.name) + '</h2><p class="muted">' + esc(g.note) + '</p>' +
       '<div class="goal-nums"><strong>' + fmt(g.saved) + '</strong><span> dari ' + fmt(g.target) + '</span></div>' +
-      progressBar(pct, '#f59e0b') + '<div class="goal-meta"><span>' + pct.toFixed(1) + '% tercapai</span><span>Sisa ' + fmt(g.target - g.saved) + '</span></div>' +
+      progressBar(pct, '#f59e0b') + '<div class="goal-meta"><span>' + pct.toFixed(1) + '% tercapai</span><span>Sisa ' + fmt(g.target - g.saved) + '</span></div>' + eta +
       '<form class="add-funds" data-goal="' + g.id + '"><label class="sr" for="fund-' + g.id + '">Tambah dana ' + esc(g.name) + '</label>' +
       '<input id="fund-' + g.id + '" type="number" min="10000" step="10000" placeholder="Tambah dana (Rp)" required />' +
       '<button class="btn primary small" type="submit">+ Tambah Dana</button></form></div>';
@@ -182,7 +184,7 @@ function renderGoals() {
   return navHtml('#/tabungan') + '<main class="wrap">' +
     '<section class="hero"><h1>Target Tabungan</h1><p class="lead">Total tabungan keluarga ' + fmt(totalSaved) + ' dari target ' +
     fmt(totalTarget) + ' (' + Math.round((totalSaved / totalTarget) * 100) + '%). Tabungan bulan ini ' + fmt(state.profile.monthlySaving) +
-    ' disisihkan dari pemasukan ' + fmt(totalsFor(state, state.profile.activeMonth).income) + '.</p></section>' +
+    ' disisihkan dari pemasukan ' + fmt(totalsFor(state, state.profile.activeMonth).income) + '. Tabungan ini dialokasikan dari sisa bulan ini setelah pengeluaran, bukan dihitung sebagai pengeluaran.</p></section>' +
     '<div class="grid-2">' + cards + '</div></main>' + footerHtml();
 }
 
